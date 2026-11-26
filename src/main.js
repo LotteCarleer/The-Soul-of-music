@@ -1,3 +1,14 @@
+import { Scene } from 'three/webgpu';
+import { createRenderer } from './core/Renderer.js';
+import { CameraRig } from './core/CameraRig.js';
+import { startLoop } from './core/Loop.js';
+import { createEnvironment } from './world/Environment.js';
+
+const renderer = createRenderer();
+const scene = new Scene();
+const rig = new CameraRig();
+
+createEnvironment(scene);
 import * as THREE from 'three/webgpu';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
@@ -38,12 +49,14 @@ const piano = new Piano();
 scene.add(piano.group);
 piano.load();
 
+// Bij het vergroten/verkleinen van het venster: camera-verhouding en canvasgrootte
+// aanpassen, anders wordt het beeld uitgerekt.
 window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
+  rig.resize();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+startLoop(renderer, scene, rig.camera, [(delta) => rig.update(delta)]);
 const timer = new THREE.Timer();
 
 renderer.setAnimationLoop(() => {
