@@ -1,34 +1,20 @@
-import * as THREE from 'three';
+import { Scene } from 'three/webgpu';
+import { createRenderer } from './core/Renderer.js';
+import { CameraRig } from './core/CameraRig.js';
+import { startLoop } from './core/Loop.js';
+import { createEnvironment } from './world/Environment.js';
 
-const scene = new THREE.Scene();
+const renderer = createRenderer();
+const scene = new Scene();
+const rig = new CameraRig();
 
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.z = 3;
+createEnvironment(scene);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
-
-const cube = new THREE.Mesh(
-  new THREE.BoxGeometry(1, 1, 1),
-  new THREE.MeshStandardMaterial({ color: 0x22c55e })
-);
-scene.add(cube);
-
-scene.add(new THREE.AmbientLight(0xffffff, 0.4));
-const light = new THREE.DirectionalLight(0xffffff, 1.5);
-light.position.set(2, 3, 4);
-scene.add(light);
-
+// Bij het vergroten/verkleinen van het venster: camera-verhouding en canvasgrootte
+// aanpassen, anders wordt het beeld uitgerekt.
 window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
+  rig.resize();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-renderer.setAnimationLoop(() => {
-  cube.rotation.x += 0.01;
-  cube.rotation.y += 0.01;
-  renderer.render(scene, camera);
-});
+startLoop(renderer, scene, rig.camera, [(delta) => rig.update(delta)]);
